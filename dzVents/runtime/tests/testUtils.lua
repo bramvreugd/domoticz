@@ -3,7 +3,7 @@ local _ = require 'lodash'
 --package.path = package.path .. ";../?.lua"
 
 local scriptPath = ''
-package.path = package.path .. ";../?.lua;" .. scriptPath .. '/?.lua;../device-adapters/?.lua;../../../scripts/lua/?.lua;'
+package.path =  ";../?.lua;" .. scriptPath .. '/?.lua;../device-adapters/?.lua;../../../scripts/lua/?.lua;' .. package.path
 
 local LOG_INFO = 2
 local LOG_DEBUG = 3
@@ -175,11 +175,16 @@ describe('event helpers', function()
 	end)
 
 	it('should convert a table to json', function()
-		local t = { a= 1 }
+		local t = {
+			a = 1,
+			b = function()
+				print('This should do nothing')
+			end
+		}
 		local res = utils.toJSON(t)
-		assert.is_same('{"a":1}', res)
+		assert.is_same('{"a":1,"b":"Function"}', res)
 	end)
-
+    
 	it('should convert a table to xml', function()
 		local t = { a= 1 }
 		local res = utils.toXML(t, 'busted')
@@ -240,10 +245,15 @@ describe('event helpers', function()
 		assert.is_same(utils.stringSplit("I forgot to include this in Domoticz.lua")[7],"Domoticz.lua")
 	end)
 
+  	it('should match a string with Lua magic chars', function()
+		assert.is_same(string.sMatch("testing (A-B-C) testing","(A-B-C)"), "(A-B-C)")
+		assert.is_not(string.match("testing (A-B-C) testing", "(A-B-C)"), "(A-B-C)")
+	end)
+
 	it('should handle inTable ', function()
 		assert.is_same(utils.inTable({ testVersion = "2.5" }, 2.5 ), "value")
 		assert.is_same(utils.inTable({ testVersion = "2.5" }, "testVersion"), "key")
-		assert.is_false(utils.inTable({ testVersion = "2.5" }, 2.4 ), false)
+		assert.is_not(utils.inTable({ testVersion = "2.5" }, 2.4 ), false)
 	end)
 
 end)
